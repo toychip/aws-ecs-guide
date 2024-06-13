@@ -64,9 +64,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y gh
 
+      - name: Clear GITHUB_TOKEN
+        run: unset GITHUB_TOKEN
+
       - name: Set GitHub Secrets # GitHub 시크릿 설정
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh auth login --with-token <<< "$GITHUB_TOKEN"
-          gh secret set ECR_IMAGE_URI --body "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          gh secret set ECR_IMAGE_URI --body "${{ env.IMAGE_URI }}"
