@@ -1,0 +1,48 @@
+name: CD - Deploy to Amazon ECS
+
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  AWS_REGION: ap-northeast-2
+  ECS_SERVICE: toystory-back # ECS Service 이름
+  ECS_CLUSTER: DevCluster # ECS Cluster 이름
+  ECS_TASK_DEFINITION: ./aws/task_definition.json # 미리 정의한 태스크 정의
+  CONTAINER_NAME: toystory
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout # GitHub 레포지토리에서 코드를 체크아웃
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials # AWS 자격 증명 설정
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ECS_CD_ACCESS_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_ECS_CD_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Fill in the new image ID in the Amazon ECS task definition # ECS 작업 정의에 새로운 이미지 ID 채우기
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ env.ECS_TASK_DEFINITION }} # 기존 ECS 작업 정의 파일
+          container-name: ${{ env.CONTAINER_NAME }} # 컨테이너 이름
+          image: ${{ secrets.ECR_IMAGE }} # 새로운 이미지 URI
+
+      - name: Deploy Amazon ECS task definition # ECS 작업 정의 배포
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }} # 새로운 작업 정의 파일
+          service: ${{ env.ECS_SERVICE }} # ECS 서비스 이름
+          cluster: ${{ env.ECS_CLUSTER }} # ECS 클러스터 이름
+          wait-for-service-stability: true # 서비스 안정화까지 대기

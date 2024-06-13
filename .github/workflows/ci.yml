@@ -1,0 +1,63 @@
+name: CI - Build and Push to ECR
+
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REPOSITORY: toystory # 리포지토리 이름
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-push:
+    name: Build and Push to ECR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout # GitHub 레포지토리에서 코드를 체크아웃
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17 # JDK 17을 설치하고 설정
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Create application.yml # application.yml 파일 생성 및 시크릿 값 쓰기
+        run: |
+          mkdir -p ./src/main/resources
+          APPLICATION_YML_PATH=./src/main/resources/application.yml
+          echo "Writing application.yml"
+          echo "${{ secrets.APPLICATION_YML }}" > "$APPLICATION_YML_PATH"
+
+      - name: Build with Gradle # Gradle을 사용하여 프로젝트를 빌드하고 bootJar 생성
+        run: |
+          chmod +x gradlew
+          ./gradlew bootJar
+
+      - name: Configure AWS credentials # AWS 자격 증명 설정
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ECS_CI_ACCESS_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_ECS_CI_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR # Amazon ECR에 로그인
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to Amazon ECR # Docker 이미지를 빌드하고, 태그를 붙여 ECR에 푸시
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }} # ECR 레지스트리 URL
+          IMAGE_TAG: ${{ github.sha }} # 현재 커밋의 SHA로 이미지 태그 생성
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG . 
+          # Docker 이미지를 빌드
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG 
+          # ECR에 이미지 푸시
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT 
+          # 이미지 경로를 출력에 저장
