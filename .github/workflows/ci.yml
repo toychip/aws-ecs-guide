@@ -2,11 +2,11 @@ name: CI - Build and Push to ECR
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 env:
   AWS_REGION: ap-northeast-2
-  ECR_REPOSITORY: toystory # 리포지토리 이름
+  ECR_REPOSITORY: toystory
 
 permissions:
   contents: read
@@ -52,12 +52,21 @@ jobs:
       - name: Build, tag, and push image to Amazon ECR # Docker 이미지를 빌드하고, 태그를 붙여 ECR에 푸시
         id: build-image
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }} # ECR 레지스트리 URL
-          IMAGE_TAG: ${{ github.sha }} # 현재 커밋의 SHA로 이미지 태그 생성
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG . 
-          # Docker 이미지를 빌드
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG 
-          # ECR에 이미지 푸시
-          echo "IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV 
-          # 이미지 경로를 환경 변수로 설정
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
+
+      - name: Install GitHub CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gh
+
+      - name: Set GitHub Secrets # GitHub 시크릿 설정
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh auth login --with-token <<< "$GITHUB_TOKEN"
+          gh secret set ECR_IMAGE_URI --body "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
