@@ -11,6 +11,7 @@ public class EcsController {
 
     private static final Logger log = LoggerFactory.getLogger(EcsController.class);
 
+    // test
     @GetMapping("/test")
     public ResponseEntity<String> teat() {
         log.info("test! Hello");
