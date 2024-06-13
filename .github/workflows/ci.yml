@@ -59,9 +59,5 @@ jobs:
           # Docker 이미지를 빌드
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG 
           # ECR에 이미지 푸시
-          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT 
-          # 이미지 경로를 출력에 저장
-
-      - name: Set output # 이미지 URI를 출력 값으로 설정
-        id: set-output
-        run: echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          echo "IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV 
+          # 이미지 경로를 환경 변수로 설정
