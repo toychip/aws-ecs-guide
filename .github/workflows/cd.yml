@@ -1,8 +1,10 @@
 name: CD - Deploy to Amazon ECS
 
 on:
-  push:
-    branches: [ "main" ]
+  workflow_run:
+    workflows: ["CI - Build and Push to ECR"]
+    types:
+      - completed
 
 env:
   AWS_REGION: ap-northeast-2
@@ -37,7 +39,7 @@ jobs:
         with:
           task-definition: ${{ env.ECS_TASK_DEFINITION }} # 기존 ECS 작업 정의 파일
           container-name: ${{ env.CONTAINER_NAME }} # 컨테이너 이름
-          image: ${{ steps.build-image.outputs.image }} # 새로운 이미지 URI
+          image: ${{ secrets.IMAGE_URI }} # 새로운 이미지 URI
 
       - name: Deploy Amazon ECS task definition # ECS 작업 정의 배포
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
