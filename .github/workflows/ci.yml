@@ -1,66 +1,66 @@
-name: CI - Build and Push to ECR
-
-on:
-  push:
-    branches: [ "main" ]
-
-env:
-  AWS_REGION: ap-northeast-2
-  ECR_REPOSITORY: toystory
-
-permissions:
-  contents: read
-
-jobs:
-  build-and-push:
-    name: Build and Push
-    runs-on: ubuntu-latest
-
-    steps:
-      # 소스 코드를 체크아웃합니다.
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      # JDK 17을 설정합니다.
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      # application.yml 파일을 생성합니다.
-      - name: Create application.yml
-        run: |
-          mkdir -p ./src/main/resources
-          APPLICATION_YML_PATH=./src/main/resources/application.yml
-          echo "Writing application.yml"
-          echo "${{ secrets.APPLICATION_YML }}" > "$APPLICATION_YML_PATH"
-
-      # Gradle을 사용하여 프로젝트를 빌드합니다.
-      - name: Build with Gradle
-        run: |
-          chmod +x gradlew
-          ./gradlew bootJar
-
-      # AWS 자격 증명을 구성합니다.
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ECS_CI_ACCESS_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_ECS_CI_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      # Amazon ECR에 로그인합니다.
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-
-      # 이미지를 빌드, 태그 및 ECR에 푸시합니다.
-      - name: Build, tag, and push image to Amazon ECR
-        id: build-image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+#name: CI - Build and Push to ECR
+#
+#on:
+#  push:
+#    branches: [ "main" ]
+#
+#env:
+#  AWS_REGION: ap-northeast-2
+#  ECR_REPOSITORY: toystory
+#
+#permissions:
+#  contents: read
+#
+#jobs:
+#  build-and-push:
+#    name: Build and Push
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      # 소스 코드를 체크아웃합니다.
+#      - name: Checkout
+#        uses: actions/checkout@v3
+#
+#      # JDK 17을 설정합니다.
+#      - name: Set up JDK 17
+#        uses: actions/setup-java@v3
+#        with:
+#          java-version: '17'
+#          distribution: 'temurin'
+#
+#      # application.yml 파일을 생성합니다.
+#      - name: Create application.yml
+#        run: |
+#          mkdir -p ./src/main/resources
+#          APPLICATION_YML_PATH=./src/main/resources/application.yml
+#          echo "Writing application.yml"
+#          echo "${{ secrets.APPLICATION_YML }}" > "$APPLICATION_YML_PATH"
+#
+#      # Gradle을 사용하여 프로젝트를 빌드합니다.
+#      - name: Build with Gradle
+#        run: |
+#          chmod +x gradlew
+#          ./gradlew bootJar
+#
+#      # AWS 자격 증명을 구성합니다.
+#      - name: Configure AWS credentials
+#        uses: aws-actions/configure-aws-credentials@v1
+#        with:
+#          aws-access-key-id: ${{ secrets.AWS_ECS_CI_ACCESS_ID }}
+#          aws-secret-access-key: ${{ secrets.AWS_ECS_CI_ACCESS_KEY }}
+#          aws-region: ${{ env.AWS_REGION }}
+#
+#      # Amazon ECR에 로그인합니다.
+#      - name: Login to Amazon ECR
+#        id: login-ecr
+#        uses: aws-actions/amazon-ecr-login@v1
+#
+#      # 이미지를 빌드, 태그 및 ECR에 푸시합니다.
+#      - name: Build, tag, and push image to Amazon ECR
+#        id: build-image
+#        env:
+#          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+#          IMAGE_TAG: ${{ github.sha }}
+#        run: |
+#          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+#          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
