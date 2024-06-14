@@ -8,10 +8,13 @@ on:
 
 env:
   AWS_REGION: ap-northeast-2
+  ECR_REPOSITORY: toystory
   ECS_SERVICE: toystory-back
   ECS_CLUSTER: DevCluster
   ECS_TASK_DEFINITION: ./aws/task_definition.json
   CONTAINER_NAME: toystory
+  ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+  IMAGE_TAG: latest  # 여기서는 latest로 고정하여 사용
 
 permissions:
   contents: read
@@ -23,25 +26,34 @@ jobs:
     environment: production
 
     steps:
-      - name: Checkout # GitHub 레포지토리에서 코드를 체크아웃
+      # 소스 코드를 체크아웃합니다.
+      - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Configure AWS credentials # AWS 자격 증명 설정
+      # AWS 자격 증명을 구성합니다.
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ECS_CD_ACCESS_ID }}
           aws-secret-access-key: ${{ secrets.AWS_ECS_CD_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Fill in the new image ID in the Amazon ECS task definition # ECS 작업 정의에 새로운 이미지 ID 채우기
+      # Amazon ECR에 로그인합니다.
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      # 새로운 이미지 ID를 ECS 작업 정의에 채웁니다.
+      - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: ${{ env.ECS_TASK_DEFINITION }}
           container-name: ${{ env.CONTAINER_NAME }}
-          image: ${{ secrets.ECR_IMAGE_URI }}
+          image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
 
-      - name: Deploy Amazon ECS task definition # ECS 작업 정의 배포
+      # 새로운 ECS 작업 정의를 배포합니다.
+      - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}

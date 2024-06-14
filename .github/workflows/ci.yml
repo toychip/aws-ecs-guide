@@ -2,7 +2,7 @@ name: CI - Build and Push to ECR
 
 on:
   push:
-    branches: ["main"]
+    branches: [ "develop" ]
 
 env:
   AWS_REGION: ap-northeast-2
@@ -10,47 +10,53 @@ env:
 
 permissions:
   contents: read
-  actions: write  # 시크릿 설정을 위해 필요한 최소 권한
 
 jobs:
   build-and-push:
-    name: Build and Push to ECR
+    name: Build and Push
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout # GitHub 레포지토리에서 코드를 체크아웃
+      # 소스 코드를 체크아웃합니다.
+      - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Set up JDK 17 # JDK 17을 설치하고 설정
+      # JDK 17을 설정합니다.
+      - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Create application.yml # application.yml 파일 생성 및 시크릿 값 쓰기
+      # application.yml 파일을 생성합니다.
+      - name: Create application.yml
         run: |
           mkdir -p ./src/main/resources
           APPLICATION_YML_PATH=./src/main/resources/application.yml
           echo "Writing application.yml"
           echo "${{ secrets.APPLICATION_YML }}" > "$APPLICATION_YML_PATH"
 
-      - name: Build with Gradle # Gradle을 사용하여 프로젝트를 빌드하고 bootJar 생성
+      # Gradle을 사용하여 프로젝트를 빌드합니다.
+      - name: Build with Gradle
         run: |
           chmod +x gradlew
           ./gradlew bootJar
 
-      - name: Configure AWS credentials # AWS 자격 증명 설정
+      # AWS 자격 증명을 구성합니다.
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ECS_CI_ACCESS_ID }}
           aws-secret-access-key: ${{ secrets.AWS_ECS_CI_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Login to Amazon ECR # Amazon ECR에 로그인
+      # Amazon ECR에 로그인합니다.
+      - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build, tag, and push image to Amazon ECR # Docker 이미지를 빌드하고, 태그를 붙여 ECR에 푸시
+      # 이미지를 빌드, 태그 및 ECR에 푸시합니다.
+      - name: Build, tag, and push image to Amazon ECR
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -58,19 +64,3 @@ jobs:
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
-
-      - name: Install GitHub CLI
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gh
-
-      - name: Authenticate GitHub CLI
-        run: |
-          echo ${{ secrets.GITHUB_TOKEN }} | gh auth login --with-token
-
-      - name: Set GitHub Secret # GitHub 시크릿 설정
-        env:
-          IMAGE_URI: ${{ env.IMAGE_URI }}
-        run: |
-          gh secret set ECR_IMAGE_URI --body "${IMAGE_URI}"
