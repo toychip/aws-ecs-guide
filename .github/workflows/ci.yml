@@ -2,7 +2,7 @@ name: CI - Build and Push to ECR
 
 on:
   push:
-    branches: [ "develop" ]
+    branches: [ "main" ]
 
 env:
   AWS_REGION: ap-northeast-2
