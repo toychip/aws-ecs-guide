@@ -65,18 +65,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y gh
 
-      - name: Clear GITHUB_TOKEN for CLI
-        run: |
-          unset GITHUB_TOKEN
-
-      - name: Authenticate GitHub CLI # GitHub CLI 인증
+      - name: Authenticate with GitHub CLI and set secret
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo $GH_TOKEN | gh auth login --with-token
-
-      - name: Set GitHub Secret # GitHub 시크릿 설정
-        env:
-          IMAGE_URI: ${{ env.IMAGE_URI }}
-        run: |
-          gh secret set ECR_IMAGE_URI --body "${IMAGE_URI}"
+          echo "$GH_TOKEN" > token.txt
+          gh auth login --with-token < token.txt
+          gh secret set ECR_IMAGE_URI --body "${{ env.IMAGE_URI }}"
