@@ -68,6 +68,7 @@ jobs:
       - name: Clear GITHUB_TOKEN for CLI
         run: |
           unset GITHUB_TOKEN
+          echo "unset GITHUB_TOKEN"
 
       - name: Set GitHub Secret # GitHub 시크릿 설정
         env:
