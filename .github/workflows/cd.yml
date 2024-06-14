@@ -26,10 +26,6 @@ jobs:
     environment: production
 
     steps:
-      # 소스 코드를 체크아웃합니다.
-      - name: Checkout
-        uses: actions/checkout@v3
-
       # AWS 자격 증명을 구성합니다.
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
