@@ -65,10 +65,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y gh
 
-      - name: Authenticate with GitHub CLI and set secret
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Authenticate GitHub CLI and set secret
         run: |
-          echo "$GH_TOKEN" > token.txt
-          gh auth login --with-token < token.txt
+          echo ${{ secrets.GITHUB_TOKEN }} | gh auth login --with-token
           gh secret set ECR_IMAGE_URI --body "${{ env.IMAGE_URI }}"
