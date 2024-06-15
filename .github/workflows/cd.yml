@@ -6,55 +6,48 @@ on:
     types:
       - completed
 
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REPOSITORY: toystory
+  ECS_SERVICE: toystory-back
+  ECS_CLUSTER: DevCluster
+  ECS_TASK_DEFINITION: ./aws/task_definition.json
+  CONTAINER_NAME: toystory
+  ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+  IMAGE_TAG: latest
+
 permissions:
   contents: read
 
 jobs:
   deploy:
-    name: Deploy
+    name: Deploy to ECS
     runs-on: ubuntu-latest
     environment: production
 
     steps:
-      # 소스 코드를 체크아웃하는 단계입니다.
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 1  # 필요한 최소한의 깊이만 체크아웃합니다.
-          path: 'aws'  # 특정 폴더를 지정할 수는 없지만 전체를 체크아웃한 후 필요한 폴더만 사용합니다.
 
-      # AWS 자격 증명을 구성하는 단계입니다.
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-northeast-2
+          aws-region: ${{ env.AWS_REGION }}
 
-      # Amazon ECR에 로그인하는 단계입니다.
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      # 새로운 이미지 ID를 ECS 작업 정의에 채워 넣는 단계입니다.
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
-        env:
-          AWS_REGION: ap-northeast-2
-          ECR_REPOSITORY: toystory
-          ECS_SERVICE: toystory-back
-          ECS_CLUSTER: DevCluster
-          ECS_TASK_DEFINITION: ./aws/task_definition.json
-          CONTAINER_NAME: toystory
-          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
-          IMAGE_TAG: latest
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: ${{ env.ECS_TASK_DEFINITION }}
           container-name: ${{ env.CONTAINER_NAME }}
           image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
 
-      # 새로운 ECS 작업 정의를 배포하는 단계입니다.
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
