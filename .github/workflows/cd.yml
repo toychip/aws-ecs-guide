@@ -1,6 +1,5 @@
 name: CD - Deploy to Amazon ECS
 
-# CI 워크플로우가 완료된 후에 CD 워크플로우를 실행합니다.
 on:
   workflow_run:
     workflows: ["CI - Build and Push to ECR"]
@@ -18,16 +17,22 @@ env:
   IMAGE_TAG: latest
 
 permissions:
-  # 리포지토리 콘텐츠에 대한 읽기 권한을 부여합니다.
   contents: read
 
 jobs:
   deploy:
-    name: Deploy  # 작업 이름을 정의합니다.
-    runs-on: ubuntu-latest  # 최신 Ubuntu 러너를 사용합니다.
-    environment: production  # 배포 환경을 정의합니다.
+    name: Deploy
+    runs-on: ubuntu-latest
+    environment: production
 
     steps:
+      # 특정 폴더만 체크아웃하는 단계입니다.
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1  # 필요한 최소한의 깊이만 체크아웃합니다.
+          path: 'aws'  # 특정 폴더를 지정할 수는 없지만 전체를 체크아웃한 후 필요한 폴더만 사용합니다.
+
       # AWS 자격 증명을 구성하는 단계입니다.
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
