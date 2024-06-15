@@ -6,16 +6,6 @@ on:
     types:
       - completed
 
-env:
-  AWS_REGION: ap-northeast-2
-  ECR_REPOSITORY: toystory
-  ECS_SERVICE: toystory-back
-  ECS_CLUSTER: DevCluster
-  ECS_TASK_DEFINITION: ./aws/task_definition.json
-  CONTAINER_NAME: toystory
-  ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
-  IMAGE_TAG: latest
-
 permissions:
   contents: read
 
@@ -26,7 +16,7 @@ jobs:
     environment: production
 
     steps:
-      # 특정 폴더만 체크아웃하는 단계입니다.
+      # 소스 코드를 체크아웃하는 단계입니다.
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -39,7 +29,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ap-northeast-2
 
       # Amazon ECR에 로그인하는 단계입니다.
       - name: Login to Amazon ECR
@@ -49,6 +39,15 @@ jobs:
       # 새로운 이미지 ID를 ECS 작업 정의에 채워 넣는 단계입니다.
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
+        env:
+          AWS_REGION: ap-northeast-2
+          ECR_REPOSITORY: toystory
+          ECS_SERVICE: toystory-back
+          ECS_CLUSTER: DevCluster
+          ECS_TASK_DEFINITION: ./aws/task_definition.json
+          CONTAINER_NAME: toystory
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          IMAGE_TAG: latest
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: ${{ env.ECS_TASK_DEFINITION }}
