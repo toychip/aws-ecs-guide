@@ -72,7 +72,7 @@ jobs:
 
   deploy-ecs:
     name: Deploy to ECS
-    needs: build-docker-and-ecr-push
+    needs: build-docker-and-push-ecr
     runs-on: ubuntu-latest
     environment: production
 
