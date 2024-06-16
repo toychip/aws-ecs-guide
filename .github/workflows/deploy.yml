@@ -2,7 +2,7 @@ name: CI/CD - Build, Push to ECR and Deploy to ECS
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "target" ]
 
 env:
   AWS_REGION: ap-northeast-2
