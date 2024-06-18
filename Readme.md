@@ -7,17 +7,12 @@
 
 ## 블로그 글 목록
 
-[ECS 무중단 CI/CD 파이프라인: 0. ECS 배포하게 된 배경](https://toychip.tistory.com/66)
-
-[ECS 무중단 CI/CD 파이프라인: 1. ECS 기본 개념, ECR, Task 정의, IAM, CLI](https://toychip.tistory.com/67)
-
-[ECS 무중단 CI/CD 파이프라인: 2. Route 53 & ACM 🔥😡🔥](https://toychip.tistory.com/68)
-
-[ECS 무중단 CI/CD 파이프라인: 3. 로드밸런서와 리스너, 대상그룹](https://toychip.tistory.com/69)
-
-[ECS 무중단 CI/CD 파이프라인: 4. ECS Service 배포, HTTP Redirect](https://toychip.tistory.com/70)
-
-[ECS 무중단 CI/CD 파이프라인: 5. GitHub Action CI/CD Pipeline 구축](https://toychip.tistory.com/71)
+- [AWS ECS 무중단 CI/CD Pipeline 0. ECS 배포하게 된 배경](https://toychip.tistory.com/66)
+- [AWS ECS 무중단 CI/CD Pipeline 1. ECS 기본 개념, ECR, Task 정의, IAM, CLI](https://toychip.tistory.com/67)
+- [AWS ECS 무중단 CI/CD Pipeline 2. Route 53 & ACM 🔥😡🔥](https://toychip.tistory.com/68)
+- [AWS ECS 무중단 CI/CD Pipeline 3. 로드밸런서와 리스너, 대상그룹](https://toychip.tistory.com/69)
+- [AWS ECS 무중단 CI/CD Pipeline 4. ECS Service 배포, HTTP Redirect](https://toychip.tistory.com/70)
+- [AWS ECS 무중단 CI/CD Pipeline 5. GitHub Action CI/CD Pipeline 구축](https://toychip.tistory.com/71)
 
 ## 프로젝트 구조
 
