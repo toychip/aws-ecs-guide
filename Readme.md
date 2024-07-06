@@ -21,11 +21,13 @@
 │   └── task-definition.json
 ├── .github
 │   └── workflows
-│       ├── ci.yml
-│       └── cd.yml
+│       └── deploy.yml
+│           ├── (CI, job) build-docker-and-push-ecr
+│           └── (CD, job) deploy-ecs
 ├── src
 │   └── ...
 └── README.md
+
 ```
 
 ## AWS Task 정의 파일
@@ -33,22 +35,30 @@
 
 이 파일은 ECS 클러스터에 배포될 컨테이너의 설정을 정의합니다.
 
-## CI/CD 파일
-.github/workflows 디렉토리에는 GitHub Actions를 사용하여 CI/CD 파이프라인을 구축하기 위한 YAML 파일들이 있습니다. 
+## CI/CD 파일 - deploy.yml
+.github/workflows 디렉토리에는 GitHub Actions를 사용하여 CI/CD 파이프라인을 구축하기 위한 deploy.yml 파일이 있습니다.
 
-이 파일들은 다음과 같은 기능을 수행합니다:
+이 YAML 파일은 두 개의 job으로 구성된 워크플로우를 정의합니다:
 
-### ci.yml
+### (CI, job) build-docker-and-push-ecr
 
-Continuous Integration을 위한 워크플로우 파일입니다. 
+소스 코드를 체크아웃하고 JDK 17을 설정합니다.
 
-코드가 푸시될 때마다 테스트와 빌드를 자동으로 수행합니다.
+application.yml 파일을 생성합니다.
 
-### cd.yml
+Gradle을 사용하여 프로젝트를 빌드합니다.
 
-Continuous Deployment를 위한 워크플로우 파일입니다. 
+AWS 자격 증명을 구성하고 Amazon ECR에 로그인합니다.
 
-특정 브랜치에 푸시되거나 PR이 머지될 때 자동으로 ECS에 배포합니다.
+Docker 이미지를 빌드하고 태그를 지정한 후 Amazon ECR에 푸시합니다.
+
+### (CD, job) deploy-ecs
+
+AWS 자격 증명을 구성하고 Amazon ECR에 로그인합니다.
+
+새로운 이미지 ID를 ECS 작업 정의에 채워 넣습니다.
+
+새로운 ECS 작업 정의를 배포하고 서비스의 안정성을 확인합니다.
 
 ## 사용 방법
 ### 태스크 정의 파일 수정
@@ -56,7 +66,7 @@ Continuous Deployment를 위한 워크플로우 파일입니다.
 aws/task-definition.json 파일에서 컨테이너 이미지, 리소스 설정 등을 수정합니다.
 
 ### GitHub Actions 설정
-.github/workflows/ci.yml 및 cd.yml 파일에서 필요한 환경 변수를 설정합니다.
+.github/workflows/deploy.yml 파일에서 필요한 환경 변수를 설정합니다.
 
 ## 배포
 
